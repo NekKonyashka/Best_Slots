@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,11 +11,13 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml.Linq;
+
 
 namespace Best_Slots
 {
@@ -24,26 +27,62 @@ namespace Best_Slots
    
     public partial class MainWindow : Window
     {
-        private bool isBegin = true;
+        private static readonly ImageFactory factory = new ImageFactory();
 
+        //Создание полей, которые хранят объект цветов нижней панели и заднего фона в соответствии с выбранной тематикой.
+        //Сделал, чтобы каждый раз не создавался новый объект.
+        private static readonly SolidColorBrush _langBottomPanel = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF000B54"));
+        private static readonly SolidColorBrush _facBottomPanel = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF876245"));
+        private static readonly SolidColorBrush _langDepPanel = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF202E8C"));
+        private static readonly SolidColorBrush _facDepPanel = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFA4724C"));
+        private static readonly ImageBrush _langFill = new ImageBrush(new BitmapImage(new Uri("images/back/lang.jpg", UriKind.Relative)));
+        private static readonly ImageBrush _facFill = new ImageBrush(new BitmapImage(new Uri("images/back/bstu.jpg", UriKind.Relative)));
+
+        private static SoundPlayer _player = new SoundPlayer();
+
+        //Внутренние изображения у кнопок Play и ThemeChanger для быстрого доступа к полю Source.
+        private static Image _templatePlayImage;
+        private static Image _templateThemeImage;
+
+        //Поля, которые хранят объекты изображений для кнопок Play И ThemeChanger, которые меняются по клику.
+        private static readonly BitmapImage _templateStart = new BitmapImage(new Uri("images/buttons/button-stop.png", UriKind.Relative));
+        private static readonly BitmapImage _templateStop = new BitmapImage(new Uri("images/buttons/button-play.png", UriKind.Relative));
+        private static readonly BitmapImage _templateFacult = new BitmapImage(new Uri("images/buttons/facultTheme.png", UriKind.Relative));
+        private static readonly BitmapImage _templateLang = new BitmapImage(new Uri("images/buttons/langTheme.png", UriKind.Relative));
+
+        //Поле с столбцами
+        private static List<ListBox> _columns = new List<ListBox>();
+
+        //Задержка между столбцами во время анимации.
         public static int ColumnsDelay = 200; 
 
+        //кол-во элементов в первом стобце, через которое высчитывается кол-во во втором и третьем
         public const int MAX = 65;
 
+        //Для подкрутки
         private static double _limit;
         private static double _wasteLimit;
         private static double _currentWining = 0;
         private static double _currentWaste = 0;
 
+        //Всякие событийные булевые значения
+        private bool isBegin = true;
         private static bool _setHighChance = false;
+        private static bool _isStoped = false;
+        private static bool _sessionStarted = false;
+        private static bool _themeChanged = false;
         private static int _counter;
 
         private static double wining = 0;
 
+        //Список с тремя выбранными картинками
         private static readonly List<Image> _images = new List<Image>();
 
+        //Список с вложенными списками, в каждом из которых по 3 элемента из каждого столбца,
+        //сделан, чтобы при новом вращении 9 видимых элементов оставались на экране и с них начиналась прокрутка.
         private static readonly List<List<Image>> _prevImages = new List<List<Image>>() { new List<Image>(), new List<Image>(), new List<Image>() };
 
+        //Словарь, получающий выигрыш по ставке рубль в зависимости от индекса картинки
         private static readonly Dictionary<int, double> Winings = new() 
         {
             [0] = 100.00,
@@ -55,71 +94,102 @@ namespace Best_Slots
             [6] = 4.50
         };
 
-
+        //Массив с ставками
         private static readonly string[] Deposits = { "0,20", "0,50", "1,00", "2,00" };
         private int index = Deposits.Length - 1;
 
+        //Список с тасками, которые добавляются во время асинхронных операций(анимация прокрутки)
+        //Создан для ожидания завершения анимации
         private static List<Task> _currentTasks = new List<Task>();
         public MainWindow()
         {
+            //Жесткая установка локализации, чтобы дробные числа не ломались
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
+            //Запрет расширения окна,т.к. я не настроил 
             ResizeMode = ResizeMode.NoResize;
 
             InitializeComponent();
+            factory.SetDictionary(ImageLibrary.FacultImages); //загрузка словаря с факультетами
+
+            //Подкрутка
             SetLimit();
             SetWasteLimit();
-            ShowDep();
-            CheckButtons();
-            FillColumns();
+
+            ShowDep(); //Показ текущей ставки(самая крайняя)
+            CheckButtons(); //Проверка кнопок уменьшения/увеличения депозита
+
+            _columns = FindColumns();
+            FillColumns(); //Заполнение картинок
+
+            //Добавление обработчика события, которое срабатывает при показе окна для правильного отображения всех элементов
             ContentRendered += (s, e) =>
             {
                 Scrolling();
+                ShowColumns();
+                _templatePlayImage = (Image)Play.Template.FindName("img", Play);
+                _templateThemeImage = (Image)ThemeChanger.Template.FindName("change", ThemeChanger);
             };
             isBegin = false;
         }
 
+        //Метод прокрутки скролла каждого столбца к предпоследнему элементу, чтобы прокручивание при запуске начиналось всегде с нижнего элемента
         private void Scrolling()
         {
-            foreach (var col in FindColumns())
+            foreach (var col in _columns)
             {
-                col.ScrollIntoView(col.Items[col.Items.Count - 1]);
+                var item = (Image)col.Items[col.Items.Count - 2];
+                item.RenderTransform = null; // сброс анимации расширения элемента
+
+                //Небольшое ожидание после сброса, чтобы координата элемента правильно посчиталась
                 col.UpdateLayout();
-                UpdateLayout();
+                Dispatcher.BeginInvoke(() => {},DispatcherPriority.Render);
+
                 var scroll = GetScrollViewer(col);
-                var off = scroll.VerticalOffset;
-                scroll.ScrollToVerticalOffset(off - 51.5);
+                double coords = ComputeImageCoords(scroll, item);
+                scroll.ScrollToVerticalOffset(scroll.VerticalOffset + Math.Abs(coords)); //Прокрутка с текущей позиции скролла к координате 
+            }
+        }
+        //Изначально столбцы скрыты, поэтому метод их делает видимыми
+        private void ShowColumns()
+        {
+            foreach(var col in _columns)
+            {
+                col.Visibility = Visibility.Visible;
             }
         }
 
+        //Подкрутка
         private void SetLimit()
         {
             _limit = ChanceSettings.rnd.Next(100, 200);
         }
+        //Подкрутка
         private void SetWasteLimit()
         {
             _wasteLimit = ChanceSettings.rnd.Next(20, 40);
         }
-        private IEnumerable<ListBox> FindColumns()
+        //Метод для поиска всех стобцов внутри сетки Grid по их имени
+        private List<ListBox> FindColumns()
         {
+            var list = new List<ListBox>();
             for(int i = 1;i <= 3;i++)
             {
                 var name = "Column" + i;
-                yield return MyGrid.FindName(name) as ListBox;
+                list.Add(MyGrid.FindName(name) as ListBox);
             }
+            return list;
         }
         public void FillColumns()
         {
-            foreach (var col in FindColumns())
+            foreach (var col in _columns)
             {
                 var maximum = ComputeMax(col);
                 for (var i = 0; i < maximum; i++)
                 { 
-                    var factory = new ImageFactory();
                     Image img = factory.CreateImage();
                     col.Items.Add(img);
                     if(!isBegin && i >= maximum - 3)
@@ -127,7 +197,7 @@ namespace Best_Slots
                         col.Items.RemoveAt(maximum - 3);
                     }
                 }
-                foreach(var img in _prevImages[int.Parse(col.Name.Substring(6)) - 1])
+                foreach(var img in _prevImages[GetColumnIndex(col) - 1])
                 {
                     col.Items.Add(img);
                 }
@@ -139,16 +209,23 @@ namespace Best_Slots
             if (!isBegin)
             {
                 Scrolling();
-                foreach (var list in _prevImages)
-                {
-                    list.Clear();
-                }
+                ClearPrevious();
             }
-
         }
-        private int ComputeMax(ListBox list)
+        private void ClearPrevious()
         {
-            return (int)(MAX * Math.Sqrt(int.Parse(list.Name.Substring(6))));
+            foreach (var list in _prevImages)
+            {
+                list.Clear();
+            }
+        }
+        private int GetColumnIndex(ListBox listBox)
+        {
+            return int.Parse(listBox.Name.Substring(6));
+        }
+        private int ComputeMax(ListBox listBox)
+        {
+            return (int)(MAX * Math.Sqrt(GetColumnIndex(listBox)));
         }
         private double ConvertToDouble(string str)
         {
@@ -178,11 +255,22 @@ namespace Best_Slots
         }
         private void SetPreviousImages(int index,ListBox list)
         {
-            int id = int.Parse(list.Name.Substring(6)) - 1;
+            int id = GetColumnIndex(list) - 1;
             for(int i = index - 1, j = 0; j < 3; i++, j++)
             {
                 _prevImages[id].Add((Image)list.Items[i]);
             }
+        }
+        private bool CheckSameChance(int sameChance)
+        {
+            foreach(var col in _columns)
+            {
+                if(!IsExists(col, sameChance))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
         private void SetStoppedElements()
         {
@@ -192,17 +280,21 @@ namespace Best_Slots
                 _counter--;
                 if(_counter == 0)
                 {
-                    sameChance = ChanceSettings.StopChance();
+                    do
+                    {
+                        sameChance = ChanceSettings.StopChance();
+                    }
+                    while (!CheckSameChance(sameChance));
                 }
             }
-            foreach (ListBox col in FindColumns())
+            foreach (ListBox col in _columns)
             {
-                int id = -1;
-                while(!IsExists(col, id))
+                int id;
+                do
                 {
                     if (_setHighChance)
                     {
-                        if(_counter == 0)
+                        if (_counter == 0)
                         {
                             id = sameChance;
                             break;
@@ -210,21 +302,21 @@ namespace Best_Slots
                     }
                     id = ChanceSettings.StopChance();
                 }
-                foreach (Image image in col.Items)
-                {
-                    if(IsSuitable(col,image,id))
-                    {
-                        image.Tag += " stop";
-                        SetPreviousImages(col.Items.IndexOf(image), col);
-                        break;
-                    }
-                }
+                while (!IsExists(col, id));
+            }
+            AddStopToAllTag();
+        }
+        private void AddStopToAllTag()
+        {
+            foreach(var img in _images)
+            {
+                img.Tag += " stop";
             }
         }
         private bool IsSuitable(ListBox col,Image image,int id)
         {
             var max = ComputeMax(col);
-            var cef = 30 * int.Parse(col.Name.Substring(6));
+            var cef = 30 * GetColumnIndex(col);
             return string.Equals(image.Tag.ToString(), id.ToString()) && col.Items.IndexOf(image) > 3 && col.Items.IndexOf(image) <= max - cef;
         }
         private bool IsExists(ListBox listBox, int id)
@@ -233,6 +325,7 @@ namespace Best_Slots
             {
                 if(IsSuitable(listBox,img,id))
                 {
+                    _images.Add(img);
                     return true;
                 }
             }
@@ -240,7 +333,7 @@ namespace Best_Slots
         }
         private void ResetColumns()
         {
-            foreach(var col in FindColumns())
+            foreach(var col in _columns)
             {
                 col.Items.Clear();
             }
@@ -248,59 +341,86 @@ namespace Best_Slots
         }
         private async void Play_Click(object sender, RoutedEventArgs e)
         {
-            await StartSession();
-            EndSession();
-        }
-
-        private async Task StartSession()
-        {
-            wining = 0;
-            Play.IsEnabled = false;
-            Earn.IsEnabled = false;
-            Decrease.IsEnabled = false;
-            Increase.IsEnabled = false;
-            if (RedLine.Visibility == Visibility.Visible)
+            if (!_sessionStarted)
             {
-                RedLine.Visibility = Visibility.Hidden;
-            }
-            if (SubDepositFromBank())
-            {
-                ResetColumns();
-                Win.Text = "";
-                SetStoppedElements();
-                GetStoppedElements();
-                await Task.Delay((int)(ColumnsDelay * 3));
-                await Task.WhenAll(_currentTasks);
-                if (CompareTags(out int id))
+                if (SubDepositFromBank())
                 {
-                    wining = Winings[id] * ConvertToDouble(Deposits[index]);
-                    var winCoef = wining * 10 * (ConvertToDouble(Deposits[index]) / 0.2);
-                    _currentWining += winCoef;
-                    if (_setHighChance)
-                    {
-                        if (_counter == 0)
-                        {
-                            _currentWining -= winCoef;
-                            _setHighChance = false;
-                        }
-                    }
-                    _currentWaste -= wining / Math.Sqrt(2);
-                    AddChance(ref _currentWining, ComputeLimit(), SetLimit);
+                    Win.Text = "";
+                    _sessionStarted = true;
+                    RedLine.Visibility = Visibility.Hidden;
+                    await StartSession();
+                    EndSession();
+                }
+                else
+                {
+                    Win.Text = "Ставку убавь";
                 }
             }
             else
             {
-                Win.Text = "Ставку убавь";
+                _isStoped = true;
+            }
+        }
+
+        private void EnabledButtons(bool isEnabled)
+        {
+            foreach(var button in MyGrid.Children.OfType<Button>())
+            {
+                button.IsEnabled = isEnabled;
+            }
+        }
+        private void ChangeTemplateImage()
+        {
+            if (_sessionStarted)
+            {
+                _templatePlayImage.Source = _templateStart;
+            }
+            else
+            {
+                _templatePlayImage.Source = _templateStop;
+            }
+        }
+        private async Task StartSession()
+        {
+            wining = 0;
+            ResetColumns();
+            EnabledButtons(false);
+            ChangeTemplateImage();
+            SetStoppedElements();
+            GetStoppedElements();
+            await Task.Delay((int)(ColumnsDelay * 3.5));
+            Play.IsEnabled = true;
+            await Task.WhenAll(_currentTasks);
+            if (CompareTags(out int id))
+            {
+                _player.SoundLocation = "sounds/" + SoundsLibrary.GetSound(id);
+                wining = Winings[id] * ConvertToDouble(Deposits[index]);
+                var winCoef = wining * 10 * (ConvertToDouble(Deposits[index]) / 0.2);
+                _currentWining += winCoef;
+                if (_setHighChance)
+                {
+                    if (_counter == 0)
+                    {
+                        _currentWining -= winCoef;
+                        _setHighChance = false;
+                    }
+                }
+                _currentWaste -= wining / Math.Sqrt(2);
+                AddChance(ref _currentWining, ComputeLimit(), SetLimit);
             }
         }
 
         private void EndSession()
         {
+            EnabledButtons(true);
             CheckButtons();
-            Play.IsEnabled = true;
-            Earn.IsEnabled = true;
-            if(wining != 0)
+            _sessionStarted = false;
+            _isStoped = false;
+            ChangeTemplateImage();
+            if (wining != 0)
             {
+                EndAnimation();
+                _player.Play();
                 Win.Text = $"Ваш выигрыш:  {wining.ToString("0.00").Replace('.',',')} BYN";
                 Bank.Text = (ParseBank() + wining).ToString("0.00").Replace('.',',') + " BYN";
                 RedLine.Visibility = Visibility.Visible;
@@ -349,21 +469,22 @@ namespace Best_Slots
         }
         private async void GetStoppedElements()
         {
-            foreach(ListBox col in FindColumns())
+            int i = 0;
+            foreach(ListBox col in _columns)
             {
-                foreach(Image img in col.Items)
+                for(;i < _images.Count;)
                 {
-                    if(img.Tag.ToString().Substring(1) == " stop")
-                    {
-                        int index = col.Items.IndexOf(img) - 1;
-                        Image item = (Image)col.Items[index];
-                        ScrollToItem(col, item);
-                        img.Tag = img.Tag.ToString().Remove(1);
-                        _images.Add(img);
-                        await Task.Delay(ColumnsDelay);
-                        break;
-                    }
+                    Image img = _images[i];
+                    var h = img.ActualHeight;
+                    int index = col.Items.IndexOf(img);
+                    SetPreviousImages(index, col);
+                    Image item = (Image)col.Items[index];
+                    ScrollToItem(col, item);
+                    img.Tag = img.Tag.ToString().Remove(1);
+                    await Task.Delay(ColumnsDelay);
+                    break;
                 }
+                i++;
             }
         }
         private ScrollViewer GetScrollViewer(ListBox col)
@@ -376,35 +497,96 @@ namespace Best_Slots
             var scroll = GetScrollViewer(col);
 
             VirtualizingPanel.SetIsVirtualizing(col, false);
-            col.Items.Refresh();
+            //col.Items.Refresh();
             Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
 
-            var point = item.TranslatePoint(new Point(0, 0), scroll);
-            double coords = 50.00 + point.Y + item.ActualHeight - scroll.ViewportHeight / 2;
+            double coords = ComputeImageCoords(scroll, item);
+            //double coords = ((ComputeMax(col) - col.Items.IndexOf(item)) * -item.ActualHeight - item.ActualHeight) + scroll.ViewportHeight / 2;
 
             VirtualizingPanel.SetIsVirtualizing(col, true);
-            _currentTasks.Add(ScrollAsync(-100, coords, scroll));
+            _currentTasks.Add(ScrollAsync(-125, coords, scroll));
+        }
+
+        private double ComputeImageCoords(ScrollViewer scroll, Image item)
+        {
+            var point = item.TranslatePoint(new Point(0, 0), scroll);
+            return point.Y + item.ActualHeight / 2 - (scroll.ViewportHeight + 6) / 2;
         }
 
         private async Task ScrollAsync(double startSpeed,double coords,ScrollViewer scroll)
         {
-            double elapsed = 0.00;
+            double elapsed = 0;
             double startOffset = scroll.VerticalOffset;
-            double offset = startOffset + 59.00;
+            double offset = startOffset;
             double accelerate = Math.Pow(startSpeed, 2) / (2 * Math.Abs(coords));
-            double duration = -startSpeed / accelerate / 60;
-            while (elapsed <= duration)
+            double duration = Math.Abs(startSpeed / accelerate);
+            while (elapsed <= duration && !_isStoped)
             {
-                double speed = startSpeed + accelerate * elapsed * 60;
-                offset += speed;
+                offset = startOffset + startSpeed * elapsed + 0.5 * accelerate * elapsed * elapsed;
                 scroll.ScrollToVerticalOffset(offset);
                 await Task.Delay(16);
-                elapsed += 1.00 / 60.00;
+                elapsed += 1.00;
+            }
+            if (_isStoped)
+            {
+                /*
+                double distance = offset - (startOffset + coords) - 60;
+                startSpeed = -300;
+                elapsed = 0.00;
+                duration = distance / Math.Abs(startSpeed) / 60.00;
+                while (elapsed <= duration)
+                {
+                    scroll.ScrollToVerticalOffset(offset);
+                    offset += startSpeed;
+                    await Task.Delay(16);
+                    elapsed += 1.00 / 60.00;
+                }
+                */
+                offset = startOffset + coords;
+                elapsed = 0.00;
+                startSpeed = 5;
+                duration = 20.00 / startSpeed / 60.00;
+                while (elapsed <= duration)
+                {
+                    scroll.ScrollToVerticalOffset(offset);
+                    offset += startSpeed;
+                    await Task.Delay(16);
+                    elapsed += 1.00 / 60.00;
+                }
             }
             scroll.ScrollToVerticalOffset(startOffset + coords); //Корректировка
         }
 
+        private void EndAnimation()
+        {
+            foreach(var image in _images)
+            {
+                ImageAnimation(image);
+            }
+        }
+        private async Task ImageAnimation(Image image)
+        {
+            var scale = new ScaleTransform();
+            image.RenderTransform = scale;
 
+            double elapsed = 0.0;
+            double duration = 1.3;
+            double offset = image.ActualWidth;
+            double speed = -0.02;
+            while (elapsed <= duration && !_sessionStarted)
+            {
+                elapsed += 1.00 / 60.00;
+                if (scale.ScaleX >= 1.25 || scale.ScaleX <= 1)
+                {
+                    speed *= -1;
+                }
+                scale.ScaleX += speed;
+                scale.ScaleY += speed;
+                await Task.Delay(16);
+            }
+            scale.ScaleX = 1;
+            scale.ScaleY = 1;
+        }
 
         private void ShowDep()
         {
@@ -459,12 +641,50 @@ namespace Best_Slots
         }
         private async void GetMoney()
         {
-            Win.Text = "Ты вывел " + Bank.Text;
-            Earn.IsEnabled = false;
-            Play.IsEnabled = false;
-            Bank.Text = "0,00 BYN";
-            await Task.Delay(2000);
-            Close();
+            if(ParseBank() < 1)
+            {
+                Win.Text = "Недостаточно денег на вывод.";
+            }
+            else
+            {
+                Win.Text = "Ты вывел " + Bank.Text;
+                Bank.Text = "0,00 BYN";
+                EnabledButtons(false);
+                await Task.Delay(2000);
+                Close();
+            }
+        }
+
+        private void ThemeChanger_Click(object sender, RoutedEventArgs e)
+        {
+            _themeChanged = _themeChanged ? false : true;
+            Win.Text = "";
+            RedLine.Visibility = Visibility.Hidden;
+            if (_themeChanged)
+            {
+                factory.SetDictionary(ImageLibrary.LangImages);
+                Background.Fill = _langFill;
+                BottomPanel.Fill = _langBottomPanel;
+                DepPanel.Fill = _langDepPanel;
+                _templateThemeImage.Source = _templateLang;
+                Bank.Foreground = new SolidColorBrush(Colors.White);
+                ThemeChanger.RenderTransform = new TranslateTransform(0, 45);
+            }
+            else
+            {
+                factory.SetDictionary(ImageLibrary.FacultImages);
+                Background.Fill = _facFill;
+                BottomPanel.Fill = _facBottomPanel;
+                DepPanel.Fill = _facDepPanel;
+                _templateThemeImage.Source = _templateFacult;
+                Bank.Foreground = new SolidColorBrush(Colors.Black);
+                ThemeChanger.RenderTransform = new TranslateTransform(0, 0);
+            }
+            isBegin = true;
+            ClearPrevious();
+            ResetColumns();
+            Scrolling();
+            isBegin = false;
         }
     }
 

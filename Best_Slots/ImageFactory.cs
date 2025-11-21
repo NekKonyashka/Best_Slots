@@ -12,33 +12,37 @@ namespace Best_Slots
 {
     internal class ImageFactory
     {
-        private readonly Dictionary<int, string> Images = new()
+        //Класс для создания картинок, хранит словарь,
+        //в который через метод передается текущий словарь из ImageLibrary в зависимости от выбранной тематики
+
+        private Dictionary<int, BitmapImage> _currentImages = new();
+
+        public void SetDictionary(Dictionary<int,string> dict)
         {
-            [0] = "fit.png",
-            [1] = "lid.png",
-            [2] = "lhf.png",
-            [3] = "htit.png",
-            [4] = "tof.png",
-            [5] = "ief.png",
-            [6] = "pim.png",
-        };
-
-        private static double Width = 145;
-
-        private ImageSource Source;
-
-        private int Tag;
-
-        public ImageFactory()
-        {
-            int index = ChanceSettings.SpawnChance();
-            Source = new BitmapImage(new Uri("images/" + Images[index], UriKind.Relative));
-            Tag = index;
+            //Предварительная очистка прошлых элементов и добавление новых по соответствующим ключам из переданного словаря dict
+            _currentImages.Clear();
+            foreach (var key in dict.Keys)
+            {
+                _currentImages.Add(key, new BitmapImage(new Uri("images/" + dict[key], UriKind.Relative))
+                {
+                    DecodePixelHeight = 145,
+                    DecodePixelWidth = 145
+                });
+            }
         }
 
+        //Метод создания картинки, возвращающий готовое изображение
         public Image CreateImage()
         {
-            return new Image() { Tag = Tag, Source = Source, Width = Width, SnapsToDevicePixels = true};
+            int index = ChanceSettings.SpawnChance(); //Определяет, какое именно изображение будет создано
+            return new Image()
+            {
+                Tag = index,
+                Source = _currentImages[index],
+                Width = 145,
+                Height = 145,
+                RenderTransformOrigin = new System.Windows.Point(0.5, 0.5) //Установка точки трансформа в центр, т.к. изначально стоит в (0,0)
+            };
         }
 
     }

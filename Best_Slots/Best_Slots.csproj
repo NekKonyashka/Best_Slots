@@ -9,44 +9,133 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="bstu.jpg" />
+    <None Remove="am-am-am-_1_.wav" />
+    <None Remove="images\back\lang.jpg" />
+    <None Remove="images\bstu.jpg" />
+    <None Remove="images\button-play.png" />
+    <None Remove="images\buttons\changeTheme.png" />
+    <None Remove="images\buttons\facultTheme.png" />
+    <None Remove="images\buttons\langTheme.png" />
+    <None Remove="images\buttons\scroller.png" />
+    <None Remove="images\decrease.png" />
+    <None Remove="images\dodep.png" />
+    <None Remove="images\earn.png" />
     <None Remove="images\fit.png" />
     <None Remove="images\htit.png" />
     <None Remove="images\ief.png" />
+    <None Remove="images\increase.png" />
+    <None Remove="images\lang.png" />
+    <None Remove="images\lang\go.png" />
+    <None Remove="images\lang\java.png" />
+    <None Remove="images\lang\php.png" />
+    <None Remove="images\lang\py.png" />
+    <None Remove="images\lang\rust.png" />
     <None Remove="images\lhf.png" />
     <None Remove="images\lid.png" />
+    <None Remove="images\logo.png" />
     <None Remove="images\pim.png" />
     <None Remove="images\tof.png" />
+    <None Remove="sounds\lucky-lucky.wav" />
+    <None Remove="sounds\mi-bombo-duolingo.wav" />
+    <None Remove="sounds\unhealthy-zoglin-danika-house_zNSVRELv.wav" />
     <None Remove="Без названия %282%29.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="images\fit.png">
+    <Content Include="images\back\bstu.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\htit.png">
+    <Content Include="images\back\lang.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\ief.png">
+    <Content Include="images\buttons\button-play.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\lhf.png">
+    <Content Include="images\buttons\button-stop.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\lid.png">
+    <Content Include="images\buttons\decrease.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\pim.png">
+    <Content Include="images\buttons\dodep.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="images\tof.png">
+    <Content Include="images\buttons\earn.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\buttons\facultTheme.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\buttons\increase.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\buttons\langTheme.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\buttons\scroller.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\cs.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\go.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\java.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\php.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\py.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\rust.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\lang\cpp.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sounds\am-am-am-_1_.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\fit.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\htit.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\ief.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\lhf.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\lid.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\pim.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\fac\tof.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sounds\lucky-lucky.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sounds\mi-bombo-duolingo.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sounds\unhealthy-zoglin-danika-house_zNSVRELv.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="bstu.jpg" />
-    <Resource Include="Без названия (2).jpg" />
+    <Resource Include="icons\Без названия %282%29.jpg" />
   </ItemGroup>
 
 </Project>
