@@ -60,8 +60,6 @@ namespace Best_Slots
         public const int MAX = 65;
 
         //Для подкрутки
-        private static double _limit;
-        private static double _wasteLimit;
         private static double _currentWining = 0;
         private static double _currentWaste = 0;
 
@@ -90,13 +88,9 @@ namespace Best_Slots
             [2] = 25.00,
             [3] = 17.50,
             [4] = 12.50,
-            [5] = 6.00,
+            [5] = 7.00,
             [6] = 4.50
         };
-
-        //Массив с ставками
-        private static readonly string[] Deposits = { "0,20", "0,50", "1,00", "2,00" };
-        private int index = Deposits.Length - 1;
 
         //Список с тасками, которые добавляются во время асинхронных операций(анимация прокрутки)
         //Создан для ожидания завершения анимации
@@ -115,11 +109,7 @@ namespace Best_Slots
             InitializeComponent();
             factory.SetDictionary(ImageLibrary.FacultImages); //загрузка словаря с факультетами
 
-            //Подкрутка
-            SetLimit();
-            SetWasteLimit();
-
-            ShowDep(); //Показ текущей ставки(самая крайняя)
+            ShowDep(DepositFlow.Current()); //Показ текущей ставки(самая крайняя)
             CheckButtons(); //Проверка кнопок уменьшения/увеличения депозита
 
             _columns = FindColumns();
@@ -162,16 +152,6 @@ namespace Best_Slots
             }
         }
 
-        //Подкрутка
-        private void SetLimit()
-        {
-            _limit = ChanceSettings.rnd.Next(100, 200);
-        }
-        //Подкрутка
-        private void SetWasteLimit()
-        {
-            _wasteLimit = ChanceSettings.rnd.Next(20, 40);
-        }
         //Метод для поиска всех стобцов внутри сетки Grid по их имени
         private List<ListBox> FindColumns()
         {
@@ -240,12 +220,12 @@ namespace Best_Slots
         private bool SubDepositFromBank()
         {
             var bank = ParseBank();
-            var dep = ConvertToDouble(Deposits[index]);
+            var dep = ConvertToDouble(DepositFlow.Current());
             if(dep <= bank)
             {
                 Bank.Text = ((bank - dep).ToString("0.00") + " BYN").Replace('.',',');
                 _currentWaste += dep;
-                AddChance(ref _currentWaste,ComputeWasteLimit(),SetWasteLimit);
+                AddChance(ref _currentWaste,ComputeWasteLimit(),LimitsHandler.SetWasteLimit);
                 return true;
             }
             else
@@ -345,8 +325,8 @@ namespace Best_Slots
             {
                 if (SubDepositFromBank())
                 {
-                    Win.Text = "";
                     _sessionStarted = true;
+                    Win.Text = "";
                     RedLine.Visibility = Visibility.Hidden;
                     await StartSession();
                     EndSession();
@@ -394,8 +374,8 @@ namespace Best_Slots
             if (CompareTags(out int id))
             {
                 _player.SoundLocation = "sounds/" + SoundsLibrary.GetSound(id);
-                wining = Winings[id] * ConvertToDouble(Deposits[index]);
-                var winCoef = wining * 10 * (ConvertToDouble(Deposits[index]) / 0.2);
+                wining = Winings[id] * ConvertToDouble(DepositFlow.Current());
+                var winCoef = wining * 10 * (ConvertToDouble(DepositFlow.Current()) / 0.2);
                 _currentWining += winCoef;
                 if (_setHighChance)
                 {
@@ -406,16 +386,16 @@ namespace Best_Slots
                     }
                 }
                 _currentWaste -= wining / Math.Sqrt(2);
-                AddChance(ref _currentWining, ComputeLimit(), SetLimit);
+                AddChance(ref _currentWining, ComputeLimit(), LimitsHandler.SetLimit);
             }
         }
 
         private void EndSession()
         {
-            EnabledButtons(true);
-            CheckButtons();
             _sessionStarted = false;
             _isStoped = false;
+            EnabledButtons(true);
+            CheckButtons();
             ChangeTemplateImage();
             if (wining != 0)
             {
@@ -451,11 +431,11 @@ namespace Best_Slots
         }
         private double ComputeLimit()
         {
-            return _limit * ConvertToDouble(Deposits[index]) / 0.2 * Math.Cbrt(ConvertToDouble(Deposits[index]) / 0.2);
+            return LimitsHandler.Limit * ConvertToDouble(DepositFlow.Current()) / 0.2 * Math.Cbrt(ConvertToDouble(DepositFlow.Current()) / 0.2);
         }
         private double ComputeWasteLimit()
         {
-            return _wasteLimit * Math.Cbrt(0.4 / ConvertToDouble(Deposits[index]));
+            return LimitsHandler.WasteLimit * Math.Cbrt(ConvertToDouble(DepositFlow.Current()) / 2);
         }
         private void AddChance(ref double value,double limit,Action setLimit)
         {
@@ -501,7 +481,6 @@ namespace Best_Slots
             Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
 
             double coords = ComputeImageCoords(scroll, item);
-            //double coords = ((ComputeMax(col) - col.Items.IndexOf(item)) * -item.ActualHeight - item.ActualHeight) + scroll.ViewportHeight / 2;
 
             VirtualizingPanel.SetIsVirtualizing(col, true);
             _currentTasks.Add(ScrollAsync(-125, coords, scroll));
@@ -588,19 +567,19 @@ namespace Best_Slots
             scale.ScaleY = 1;
         }
 
-        private void ShowDep()
+        private void ShowDep(string dep)
         {
-            Deposit.Text = Deposits[index];
+            Deposit.Text = dep;
         }
 
         private void CheckButtons()
         {
-            if (index == 0)
+            if (!DepositFlow.CanMovePrev)
             {
                 Decrease.IsEnabled = false;
                 Increase.IsEnabled = true;
             }
-            else if(index == Deposits.Length - 1)
+            else if(!DepositFlow.CanMoveNext)
             {
                 Increase.IsEnabled = false;
                 Decrease.IsEnabled = true;
@@ -613,18 +592,15 @@ namespace Best_Slots
         }
         private void Decrease_Click(object sender, RoutedEventArgs e)
         {
-            index--;
+            ShowDep(DepositFlow.Previous());
             CheckButtons();
-            ShowDep();
-
         }
 
 
         private void Increase_Click(object sender, RoutedEventArgs e)
         {
-            index++;
+            ShowDep(DepositFlow.Next());
             CheckButtons();
-            ShowDep();
         }
 
         private void Dodep_Click(object sender, RoutedEventArgs e)
@@ -657,7 +633,7 @@ namespace Best_Slots
 
         private void ThemeChanger_Click(object sender, RoutedEventArgs e)
         {
-            _themeChanged = _themeChanged ? false : true;
+            _themeChanged = !_themeChanged;
             Win.Text = "";
             RedLine.Visibility = Visibility.Hidden;
             if (_themeChanged)
