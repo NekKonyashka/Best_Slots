@@ -163,25 +163,34 @@ namespace Best_Slots
             }
             return list;
         }
+        //Метод заполнения каждой колонны
         public void FillColumns()
         {
             foreach (var col in _columns)
             {
-                var maximum = ComputeMax(col);
+                //У каждой высчитывается свое максимальное кол-во.
+                //Это сделано, чтобы у колонн была разная продолжительность анимации
+                var maximum = ComputeMax(col); 
+
                 for (var i = 0; i < maximum; i++)
                 { 
                     Image img = factory.CreateImage();
                     col.Items.Add(img);
-                    if(!isBegin && i >= maximum - 3)
+
+                    //Если истинно, то удаляет последние три изображения,
+                    //чтобы впоследствии заполнить изображениями после последней прокрутки
+                    if (!isBegin && i >= maximum - 3)
                     {
                         col.Items.RemoveAt(maximum - 3);
                     }
                 }
-                foreach(var img in _prevImages[GetColumnIndex(col) - 1])
+                foreach(var img in _prevImages[GetColumnIndex(col) - 1]) //Вот соответственно и заполнение
                 {
                     col.Items.Add(img);
                 }
-                if (isBegin)
+                //В самом начале при запуске коллекция пустая, а так как при каждом прокруте все колонны перезаполняются,
+                //то нужно запомнить с каких изображений стартует игра
+                if (isBegin) 
                 {
                     SetPreviousImages(maximum - 2, col);
                 }
@@ -192,6 +201,7 @@ namespace Best_Slots
                 ClearPrevious();
             }
         }
+        //Очищает изображения после предыдущего прокрута
         private void ClearPrevious()
         {
             foreach (var list in _prevImages)
@@ -199,24 +209,34 @@ namespace Best_Slots
                 list.Clear();
             }
         }
+
+        //Возвращает номер колонны по ее имени
         private int GetColumnIndex(ListBox listBox)
         {
             return int.Parse(listBox.Name.Substring(6));
         }
+
+        //Функция вычисления максимального кол-ва изображений для колонн
         private int ComputeMax(ListBox listBox)
         {
             return (int)(MAX * Math.Sqrt(GetColumnIndex(listBox)));
         }
+
+        //Корректная конвертация double(т.к. в зависимости от локализации появляется . либо ,)
         private double ConvertToDouble(string str)
         {
             return double.Parse(str.Replace(',','.'));
         }
+
+        //Парсинг текста денежной суммы, расположенного в правом верхнем углу
         private double ParseBank()
         {
             string pattern = @"\d+\,\d+";
             var match = Regex.Match(Bank.Text,pattern);
             return ConvertToDouble(match.Value);
         }
+
+        //Метод вычета ставки из суммы, параллельно производит различные манипуляции, необходимые для подкрутки
         private bool SubDepositFromBank()
         {
             var bank = ParseBank();
@@ -233,6 +253,8 @@ namespace Best_Slots
                 return false;
             }
         }
+
+        //Функция, которая записывает 9 изображений, которые видны на экране перед начало новой прокрутки
         private void SetPreviousImages(int index,ListBox list)
         {
             int id = GetColumnIndex(list) - 1;
@@ -241,6 +263,9 @@ namespace Best_Slots
                 _prevImages[id].Add((Image)list.Items[i]);
             }
         }
+        //Спец проверка для значения, выпавшего в ходе подкрутки,
+        //т.к. оно гарантированно для всех трех столбцов и нужно заранее убедится,
+        //что изображение с выпавшим индексом вообще существует в нем)
         private bool CheckSameChance(int sameChance)
         {
             foreach(var col in _columns)
@@ -252,9 +277,12 @@ namespace Best_Slots
             }
             return true;
         }
+
+        //Выбирает и устанавливает изображения, на которых остановится прокрут
         private void SetStoppedElements()
         {
-            int sameChance = 0;
+            //Зараннее просчитывается общее для всех значение, если должна осуществиться подкрутка
+            int sameChance = -1;
             if (_setHighChance)
             {
                 _counter--;
@@ -267,6 +295,7 @@ namespace Best_Slots
                     while (!CheckSameChance(sameChance));
                 }
             }
+            //Стандартная выборка индексов изображения для каждой из колонн
             foreach (ListBox col in _columns)
             {
                 int id;
@@ -284,21 +313,17 @@ namespace Best_Slots
                 }
                 while (!IsExists(col, id));
             }
-            AddStopToAllTag();
         }
-        private void AddStopToAllTag()
-        {
-            foreach(var img in _images)
-            {
-                img.Tag += " stop";
-            }
-        }
+
+        //Проверка, будет ли входить это изображение с текущим индексом в диапозон определенного столбца
         private bool IsSuitable(ListBox col,Image image,int id)
         {
             var max = ComputeMax(col);
             var cef = 30 * GetColumnIndex(col);
             return string.Equals(image.Tag.ToString(), id.ToString()) && col.Items.IndexOf(image) > 3 && col.Items.IndexOf(image) <= max - cef;
         }
+
+        //Проверка, существует ли изображение с текущим индексом с учетом проверки на вхождение в диапозон в столбце
         private bool IsExists(ListBox listBox, int id)
         {
             foreach(Image img in listBox.Items)
@@ -311,6 +336,8 @@ namespace Best_Slots
             }
             return false;
         }
+
+        //Очистка всех колллон и заполнение новыми изображениями
         private void ResetColumns()
         {
             foreach(var col in _columns)
@@ -319,6 +346,8 @@ namespace Best_Slots
             }
             FillColumns();
         }
+
+        //Функция, запускаемая при нажатии на кнопку старта
         private async void Play_Click(object sender, RoutedEventArgs e)
         {
             if (!_sessionStarted)
@@ -341,7 +370,7 @@ namespace Best_Slots
                 _isStoped = true;
             }
         }
-
+        //Функция отключения/включения всех кнопок, находящихся на экране
         private void EnabledButtons(bool isEnabled)
         {
             foreach(var button in MyGrid.Children.OfType<Button>())
@@ -349,6 +378,8 @@ namespace Best_Slots
                 button.IsEnabled = isEnabled;
             }
         }
+
+        //Изменение изображения кнопки старта в зависимости от состояния игры
         private void ChangeTemplateImage()
         {
             if (_sessionStarted)
@@ -360,6 +391,8 @@ namespace Best_Slots
                 _templatePlayImage.Source = _templateStop;
             }
         }
+
+        //Старт игровой сессии, где проходят все основные механики, описываемые до
         private async Task StartSession()
         {
             wining = 0;
@@ -368,13 +401,16 @@ namespace Best_Slots
             ChangeTemplateImage();
             SetStoppedElements();
             GetStoppedElements();
-            await Task.Delay((int)(ColumnsDelay * 3.5));
+            await Task.Delay((int)(ColumnsDelay * 3.5)); //Ожидает старта всех анимаций, чтобы они все были помещены в массив Task-ов
             Play.IsEnabled = true;
-            await Task.WhenAll(_currentTasks);
+            await Task.WhenAll(_currentTasks);//ожидание завершения всех анимаций
+            //Выполняется при выпадении 3 одинаковых элементов
             if (CompareTags(out int id))
             {
                 _player.SoundLocation = "sounds/" + SoundsLibrary.GetSound(id);
                 wining = Winings[id] * ConvertToDouble(DepositFlow.Current());
+
+                //Подкрутка
                 var winCoef = wining * 10 * (ConvertToDouble(DepositFlow.Current()) / 0.2);
                 _currentWining += winCoef;
                 if (_setHighChance)
@@ -390,6 +426,7 @@ namespace Best_Slots
             }
         }
 
+        //Завершение игровой сессии
         private void EndSession()
         {
             _sessionStarted = false;
@@ -414,29 +451,29 @@ namespace Best_Slots
             _images.Clear();
         }
 
+        //Сравнение тегов элементов, которые были выбраны
         private bool CompareTags(out int id)
         {
             id = -1;
-            List<int> ints = new List<int>();
-            foreach(Image item in _images)
+            int num = int.Parse(_images[0].Tag.ToString());
+            if(_images.All(im => int.Parse(im.Tag.ToString()) == num))
             {
-                ints.Add(int.Parse(item.Tag.ToString()));
-            }
-            if(ints[0] == ints[1] && ints[0] == ints[2])
-            {
-                id = ints[0];
+                id = num;
                 return true;
             }
             return false;
         }
+        //Подкрутка
         private double ComputeLimit()
         {
             return LimitsHandler.Limit * ConvertToDouble(DepositFlow.Current()) / 0.2 * Math.Cbrt(ConvertToDouble(DepositFlow.Current()) / 0.2);
         }
+        //Подкрутка
         private double ComputeWasteLimit()
         {
             return LimitsHandler.WasteLimit * Math.Cbrt(ConvertToDouble(DepositFlow.Current()) / 2);
         }
+        //Подкрутка
         private void AddChance(ref double value,double limit,Action setLimit)
         {
             if (value >= limit)
@@ -447,6 +484,8 @@ namespace Best_Slots
                 _setHighChance = true;
             }
         }
+        //Получение элементов, которые были помещены в спец. коллекцию элементов
+        //Так же тут происходит запуск анимации прокрутки для каждого изображения соответствующего столбца
         private async void GetStoppedElements()
         {
             int i = 0;
@@ -458,40 +497,44 @@ namespace Best_Slots
                     var h = img.ActualHeight;
                     int index = col.Items.IndexOf(img);
                     SetPreviousImages(index, col);
-                    Image item = (Image)col.Items[index];
-                    ScrollToItem(col, item);
-                    img.Tag = img.Tag.ToString().Remove(1);
+
+                    ScrollToItem(col, img);
                     await Task.Delay(ColumnsDelay);
                     break;
                 }
                 i++;
             }
         }
+
+        //Получает объект скролла у каждой колонны элементов
         private ScrollViewer GetScrollViewer(ListBox col)
         {
             return (ScrollViewer)MyGrid.FindName("Scroll" + col.Name);
         }
-
+        //Запускает анимацию прокрутка к выбранному изображению
         private void ScrollToItem(ListBox col, Image item)
         {
             var scroll = GetScrollViewer(col);
 
+            //Надо для корректного отображения координаты изображения, т.к. он находится за пределами окна
             VirtualizingPanel.SetIsVirtualizing(col, false);
-            //col.Items.Refresh();
             Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
 
-            double coords = ComputeImageCoords(scroll, item);
+            double coords = ComputeImageCoords(scroll, item); //Вычисление нужной координаты
 
             VirtualizingPanel.SetIsVirtualizing(col, true);
-            _currentTasks.Add(ScrollAsync(-125, coords, scroll));
+
+            _currentTasks.Add(ScrollAsync(-125, coords, scroll));//Добавление Task-а из анимации в массив "текущих анимаций"
         }
 
+        //Получение координаты центра изображения по центру окна казино
         private double ComputeImageCoords(ScrollViewer scroll, Image item)
         {
             var point = item.TranslatePoint(new Point(0, 0), scroll);
             return point.Y + item.ActualHeight / 2 - (scroll.ViewportHeight + 6) / 2;
         }
 
+        //Метод асинхронной прокрутки с ускорением
         private async Task ScrollAsync(double startSpeed,double coords,ScrollViewer scroll)
         {
             double elapsed = 0;
@@ -506,21 +549,8 @@ namespace Best_Slots
                 await Task.Delay(16);
                 elapsed += 1.00;
             }
-            if (_isStoped)
+            if (_isStoped) //При остановке меняется логика
             {
-                /*
-                double distance = offset - (startOffset + coords) - 60;
-                startSpeed = -300;
-                elapsed = 0.00;
-                duration = distance / Math.Abs(startSpeed) / 60.00;
-                while (elapsed <= duration)
-                {
-                    scroll.ScrollToVerticalOffset(offset);
-                    offset += startSpeed;
-                    await Task.Delay(16);
-                    elapsed += 1.00 / 60.00;
-                }
-                */
                 offset = startOffset + coords;
                 elapsed = 0.00;
                 startSpeed = 5;
@@ -536,6 +566,7 @@ namespace Best_Slots
             scroll.ScrollToVerticalOffset(startOffset + coords); //Корректировка
         }
 
+        //Запуск конечной анимации выпавших изображений(масштабирование)
         private void EndAnimation()
         {
             foreach(var image in _images)
@@ -543,6 +574,8 @@ namespace Best_Slots
                 ImageAnimation(image);
             }
         }
+
+        //Конечная анимация изображения
         private async Task ImageAnimation(Image image)
         {
             var scale = new ScaleTransform();
@@ -567,11 +600,15 @@ namespace Best_Slots
             scale.ScaleY = 1;
         }
 
+        //Обновляет ставку
         private void ShowDep(string dep)
         {
             Deposit.Text = dep;
         }
 
+
+        //Проверяет на возможность изменения ставки
+        //(при достижении одного из краев блокирует кнопку, чтобы нельзя было выйти за границу массива)
         private void CheckButtons()
         {
             if (!DepositFlow.CanMovePrev)
@@ -590,19 +627,22 @@ namespace Best_Slots
                 Increase.IsEnabled = true;
             }
         }
+
+        //Срабатывает при клике на кнопку уменьшения ставки
         private void Decrease_Click(object sender, RoutedEventArgs e)
         {
             ShowDep(DepositFlow.Previous());
             CheckButtons();
         }
 
-
+        //Срабатывает при клике на кнопку увеличения ставки
         private void Increase_Click(object sender, RoutedEventArgs e)
         {
             ShowDep(DepositFlow.Next());
             CheckButtons();
         }
 
+        //Срабатывает при клике на кнопку додепа
         private void Dodep_Click(object sender, RoutedEventArgs e)
         {
             Bank.Text = ((ParseBank() + 10).ToString("0.00")).Replace('.',',') + " BYN";
@@ -611,10 +651,12 @@ namespace Best_Slots
             Win.Text = "";
         }
 
+        //Срабатывает при клике на кнопку вывода средств
         private void Earn_Click(object sender, RoutedEventArgs e)
         {
             GetMoney();
         }
+        //Запуск асинхронного закрытия окна
         private async void GetMoney()
         {
             if(ParseBank() < 1)
@@ -631,6 +673,7 @@ namespace Best_Slots
             }
         }
 
+        //Срабатывает при клике на кнопку смены темы
         private void ThemeChanger_Click(object sender, RoutedEventArgs e)
         {
             _themeChanged = !_themeChanged;
@@ -656,6 +699,7 @@ namespace Best_Slots
                 Bank.Foreground = new SolidColorBrush(Colors.Black);
                 ThemeChanger.RenderTransform = new TranslateTransform(0, 0);
             }
+            //Обновляет все столбцы так, как будто это начало игры
             isBegin = true;
             ClearPrevious();
             ResetColumns();
