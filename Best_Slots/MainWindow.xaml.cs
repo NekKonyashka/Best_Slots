@@ -400,7 +400,7 @@ namespace Best_Slots
             EnabledButtons(false);
             ChangeTemplateImage();
             SetStoppedElements();
-            GetStoppedElements();
+            PrepareScrollStoppedElements();
             await Task.Delay((int)(ColumnsDelay * 3.5)); //Ожидает старта всех анимаций, чтобы они все были помещены в массив Task-ов
             Play.IsEnabled = true;
             await Task.WhenAll(_currentTasks);//ожидание завершения всех анимаций
@@ -486,7 +486,7 @@ namespace Best_Slots
         }
         //Получение элементов, которые были помещены в спец. коллекцию элементов
         //Так же тут происходит запуск анимации прокрутки для каждого изображения соответствующего столбца
-        private async void GetStoppedElements()
+        private async void PrepareScrollStoppedElements()
         {
             int i = 0;
             foreach(ListBox col in _columns)
@@ -494,7 +494,6 @@ namespace Best_Slots
                 for(;i < _images.Count;)
                 {
                     Image img = _images[i];
-                    var h = img.ActualHeight;
                     int index = col.Items.IndexOf(img);
                     SetPreviousImages(index, col);
 
@@ -505,7 +504,6 @@ namespace Best_Slots
                 i++;
             }
         }
-
         //Получает объект скролла у каждой колонны элементов
         private ScrollViewer GetScrollViewer(ListBox col)
         {
