@@ -39,8 +39,8 @@ namespace Best_Slots
             {
                 Tag = index,
                 Source = _currentImages[index],
-                Width = 145,
-                Height = 145,
+                Width = 240,
+                Height = 240,
                 RenderTransformOrigin = new System.Windows.Point(0.5, 0.5) //Установка точки трансформа в центр, т.к. изначально стоит в (0,0)
             };
         }

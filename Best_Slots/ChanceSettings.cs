@@ -17,15 +17,15 @@ namespace Best_Slots
         {
             int zone = rnd.Next(100);
             int num = -1;
-            if (zone < 35)
+            if (zone < 30)
             {
                 num = rnd.Next(5, 7);
             }
-            else if (zone >= 35 && zone < 65)
+            else if (zone >= 30 && zone < 60)
             {
                 num = rnd.Next(3, 5);
             }
-            else if (zone >= 65 && zone < 90)
+            else if (zone >= 60 && zone < 90)
             {
                 num = rnd.Next(1, 3);
             }
@@ -40,19 +40,19 @@ namespace Best_Slots
         {
             int zone = rnd.Next(100);
             int num = -1;
-            if (zone < 33)
+            if (zone < 30)
             {
                 num = 6;
             }
-            else if (zone >= 33 && zone < 58)
+            else if (zone >= 30 && zone < 55)
             {
                 num = 5;
             }
-            else if (zone >= 58 && zone < 83)
+            else if (zone >= 55 && zone < 80)
             {
                 num = rnd.Next(3, 5);
             }
-            else if (zone >= 83 && zone < 95)
+            else if (zone >= 80 && zone < 95)
             {
                 num = rnd.Next(1, 3);
             }

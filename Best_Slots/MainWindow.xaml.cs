@@ -57,7 +57,7 @@ namespace Best_Slots
         public static int ColumnsDelay = 200; 
 
         //кол-во элементов в первом стобце, через которое высчитывается кол-во во втором и третьем
-        public const int MAX = 65;
+        public const int MAX = 55;
 
         //Для подкрутки
         private static double _currentWining = 0;
@@ -103,7 +103,7 @@ namespace Best_Slots
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
-            //Запрет расширения окна,т.к. я не настроил 
+            //Запрет расширения окна
             ResizeMode = ResizeMode.NoResize;
 
             InitializeComponent();
@@ -319,7 +319,7 @@ namespace Best_Slots
         private bool IsSuitable(ListBox col,Image image,int id)
         {
             var max = ComputeMax(col);
-            var cef = 30 * GetColumnIndex(col);
+            var cef = MAX / 2 * GetColumnIndex(col);
             return string.Equals(image.Tag.ToString(), id.ToString()) && col.Items.IndexOf(image) > 3 && col.Items.IndexOf(image) <= max - cef;
         }
 
@@ -544,7 +544,7 @@ namespace Best_Slots
             {
                 offset = startOffset + startSpeed * elapsed + 0.5 * accelerate * elapsed * elapsed;
                 scroll.ScrollToVerticalOffset(offset);
-                await Task.Delay(16);
+                await Task.Delay(10);
                 elapsed += 1.00;
             }
             if (_isStoped) //При остановке меняется логика
@@ -557,7 +557,7 @@ namespace Best_Slots
                 {
                     scroll.ScrollToVerticalOffset(offset);
                     offset += startSpeed;
-                    await Task.Delay(16);
+                    await Task.Delay(10);
                     elapsed += 1.00 / 60.00;
                 }
             }
@@ -592,7 +592,7 @@ namespace Best_Slots
                 }
                 scale.ScaleX += speed;
                 scale.ScaleY += speed;
-                await Task.Delay(16);
+                await Task.Delay(10);
             }
             scale.ScaleX = 1;
             scale.ScaleY = 1;
@@ -685,7 +685,7 @@ namespace Best_Slots
                 DepPanel.Fill = _langDepPanel;
                 _templateThemeImage.Source = _templateLang;
                 Bank.Foreground = new SolidColorBrush(Colors.White);
-                ThemeChanger.RenderTransform = new TranslateTransform(0, 45);
+                ThemeChanger.RenderTransform = new TranslateTransform(0, 55);
             }
             else
             {
@@ -704,6 +704,7 @@ namespace Best_Slots
             Scrolling();
             isBegin = false;
         }
+
     }
 
 

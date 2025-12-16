@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Best_Slots"
         mc:Ignorable="d"
-        Title="Slots" Height="600" Width="800" Icon="icons/Без названия (2).jpg" Background="White" MaxWidth="1280" MaxHeight="720">
+        Title="Slots" Height="800" Width="1280" Icon="icons/Без названия (2).jpg" Background="White">
     <Grid x:Name="MyGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="45*"/>
@@ -28,7 +28,7 @@
         <ScrollViewer x:Name="ScrollColumn3" Grid.Column="3" Margin="0,0,0,30" UseLayoutRounding="False" IsEnabled="False" VerticalScrollBarVisibility="Hidden" Grid.Row="1" >
             <ListBox x:Name="Column3" d:ItemsSource="{d:SampleData ItemCount=5}" Focusable="False" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Grid.IsSharedSizeScope="True" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Grid.Column="3" IsEnabled="False" ScrollViewer.CanContentScroll="False" BorderBrush="{x:Null}" BorderThickness="0,0,0,0" UseLayoutRounding="False" Visibility="Hidden"/>
         </ScrollViewer>
-        <Button x:Name="Play" Content="play" Grid.Column="3" Click="Play_Click" Panel.ZIndex="2" Background="{x:Null}" RenderTransformOrigin="0,0" BorderThickness="0,0,0,0" Margin="125,5,15,5" Grid.ColumnSpan="2" Grid.Row="2" MaxWidth="120" MaxHeight="120">
+        <Button x:Name="Play" Content="play" Grid.Column="3" Click="Play_Click" Panel.ZIndex="3" Background="{x:Null}" RenderTransformOrigin="0,0" BorderThickness="0,0,0,0" Grid.ColumnSpan="2" Grid.Row="2" MaxWidth="120" MaxHeight="120" Margin="150,0,0,0">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Image x:Name="img" Source="/images/buttons/button-play.png" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
@@ -61,8 +61,8 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <TextBlock x:Name="Win" TextWrapping="Wrap" Grid.Row="2" Grid.Column="2" Margin="10,25,40,10" Grid.ColumnSpan="2" FontSize="22" Panel.ZIndex="2" Foreground="White"/>
-        <Button x:Name="Decrease" Grid.Column="1" Content="&lt;" Grid.Row="2" Margin="15,30,0,29" HorizontalAlignment="Left" FontSize="18" FontWeight="Bold" Click="Decrease_Click" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" Panel.ZIndex="2" MaxWidth="60" MaxHeight="60">
+        <TextBlock x:Name="Win" TextWrapping="Wrap" Grid.Row="2" Grid.Column="2" Margin="10,40,100,10" Grid.ColumnSpan="2" FontSize="28" Panel.ZIndex="2" Foreground="White"/>
+        <Button x:Name="Decrease" Grid.Column="1" Content="&lt;" Grid.Row="2" Margin="55,30,0,29" HorizontalAlignment="Left" FontSize="18" FontWeight="Bold" Click="Decrease_Click" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" Panel.ZIndex="2" Width="50" Height="50">
             <Button.Template>
                 <ControlTemplate>
                     <Image x:Name="dec" Source="/images/buttons/decrease.png" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
@@ -93,7 +93,7 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <Button x:Name="Increase" Grid.Column="1" Content="&gt;" Grid.Row="2" HorizontalAlignment="Right" Margin="0,30,15,29" FontSize="18" FontWeight="Bold" Click="Increase_Click" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center" Panel.ZIndex="2" RenderTransformOrigin="0.5,0.5" MaxWidth="60" MaxHeight="60">
+        <Button x:Name="Increase" Grid.Column="1" Content="&gt;" Grid.Row="2" HorizontalAlignment="Right" Margin="0,30,55,29" FontSize="18" FontWeight="Bold" Click="Increase_Click" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center" Panel.ZIndex="2" RenderTransformOrigin="0.5,0.5" MaxWidth="60" MaxHeight="60" Width="50" Height="50">
             <Button.Template>
                 <ControlTemplate>
                     <Image x:Name="inc" Source="/images/buttons/increase.png" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
@@ -124,11 +124,11 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <TextBlock x:Name="Deposit" Grid.Column="1" HorizontalAlignment="Center" Grid.Row="2" TextWrapping="Wrap" Text=" " VerticalAlignment="Center" TextAlignment="Center" FontWeight="Bold" FontSize="14" Panel.ZIndex="2" Foreground="White" Margin="0,5,0,0"/>
-        <TextBlock x:Name="Bank" Grid.Column="4" TextWrapping="Wrap" Text="15,00 BYN" Margin="0,10,0,0" FontWeight="Bold" TextAlignment="Center" FontSize="16" VerticalAlignment="Top" Panel.ZIndex="2" Grid.RowSpan="2" Foreground="Black"/>
+        <TextBlock x:Name="Deposit" Grid.Column="1" HorizontalAlignment="Center" Grid.Row="2" TextWrapping="Wrap" Text=" " VerticalAlignment="Center" TextAlignment="Center" FontWeight="Bold" FontSize="18" Panel.ZIndex="2" Foreground="White" Margin="0,5,0,0"/>
+        <TextBlock x:Name="Bank" Grid.Column="4" TextWrapping="Wrap" Text="15,00 BYN" Margin="0,15,0,0" FontWeight="Bold" TextAlignment="Center" FontSize="26" VerticalAlignment="Top" Panel.ZIndex="2" Grid.RowSpan="2" Foreground="Black"/>
         <Border BorderBrush="Black" BorderThickness="3,3,3,3" Grid.ColumnSpan="3" Margin="0,0,0,30" Grid.Row="1" Grid.Column="1"/>
         <Border BorderBrush="Black" BorderThickness="1" Grid.Column="2" Margin="0,0,0,30" Grid.Row="1"/>
-        <Button x:Name="Dodep" Content="Додепчи" VerticalAlignment="Top" Margin="0,10,0,0" Height="50" Width="50" FontWeight="Bold" Click="Dodep_Click" HorizontalAlignment="Center" Visibility="Hidden" Panel.ZIndex="2" Grid.RowSpan="2">
+        <Button x:Name="Dodep" Content="Додепчи" VerticalAlignment="Top" Margin="0,10,0,0" FontWeight="Bold" Click="Dodep_Click" HorizontalAlignment="Center" Visibility="Hidden" Panel.ZIndex="2" Grid.RowSpan="2" MaxHeight="100" MaxWidth="100">
             <Button.Template>
                 <ControlTemplate>
                     <Image x:Name="dodep" Source="/images/buttons/dodep.png" Stretch="Uniform"/>
@@ -140,7 +140,7 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <Label Content="Ставка" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold" FontSize="16" Panel.ZIndex="2" Margin="0,15,0,0" Foreground="White"/>
+        <Label Content="Ставка" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold" FontSize="22" Panel.ZIndex="2" Foreground="White" Margin="0,20,0,0"/>
         <Rectangle x:Name="RedLine" Grid.ColumnSpan="3" Stroke="Red" Fill="Red" Margin="20,0,20,27" Grid.Column="1" Panel.ZIndex="1" Grid.Row="1" VerticalAlignment="Center" Height="3" Visibility="Hidden"/>
         <Button x:Name="Earn" Content="Вывод" Grid.Row="2" Margin="5,10,5,10" Click="Earn_Click" FontWeight="Bold" MaxWidth="120" MaxHeight="120">
             <Button.Template>
@@ -174,38 +174,44 @@
                 <ImageBrush ImageSource="/images/back/bstu.jpg"/>
             </Rectangle.Fill>
         </Rectangle>
-        <Image Grid.Column="2" Panel.ZIndex="1" Source="/images/logo.png" Stretch="Fill" VerticalAlignment="Top" Height="140" Margin="10,-50,10,0" Grid.RowSpan="2" Width="180"/>
-        <Button x:Name="ThemeChanger" Grid.Column="4" Content="Button" HorizontalAlignment="Center" Grid.Row="1" Click="ThemeChanger_Click" VerticalAlignment="Top" Margin="17,140,15,0" MaxWidth="100" MaxHeight="100">
-            <Button.Template>
-                <ControlTemplate>
-                    <Image x:Name="change" Source="/images/buttons/facultTheme.png" Stretch="Uniform"/>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="change" Property="Opacity" Value="0.8"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="True">
-                            <Setter TargetName="change" Property="Effect">
-                                <Setter.Value>
-                                    <BlurEffect Radius="0"/>
-                                </Setter.Value>
-                            </Setter>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="change" Property="Effect">
-                                <Setter.Value>
-                                    <BlurEffect Radius="5"/>
-                                </Setter.Value>
-                            </Setter>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
-        <Rectangle x:Name="DepPanel" Grid.Column="1" Grid.Row="2" Fill="#FFA4724C" Stroke="Black" Margin="5,20,5,20" RadiusX="20" RadiusY="20" MaxWidth="220" MaxHeight="70"/>
-        <Image Grid.Column="4" Grid.Row="1" Source="/images/buttons/scroller.png" Panel.ZIndex="-1" VerticalAlignment="Center" Margin="2,0,0,30">
-            <Image.OpacityMask>
-                <ImageBrush ImageSource="/images/buttons/scroller.png" Stretch="Uniform"/>
-            </Image.OpacityMask>
-        </Image>
+
+        <Rectangle x:Name="DepPanel" Grid.Column="1" Grid.Row="2" Fill="#FFA4724C" Stroke="Black" RadiusX="35" RadiusY="35" MaxWidth="240" MaxHeight="80"/>
+        <Grid Grid.Column="4" Grid.Row="1" VerticalAlignment="Center" Height="175">
+            <Button x:Name="ThemeChanger" Grid.Column="4" Content="Button" Grid.Row="1" Click="ThemeChanger_Click" MaxWidth="80" MaxHeight="80" Background="{x:Null}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="15,7,14,0">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Image x:Name="change" Source="/images/buttons/facultTheme.png" Stretch="Uniform"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="change" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Setter TargetName="change" Property="Effect">
+                                    <Setter.Value>
+                                        <BlurEffect Radius="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="change" Property="Effect">
+                                    <Setter.Value>
+                                        <BlurEffect Radius="5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <Image Grid.Column="4" Grid.Row="1" Source="/images/buttons/scroller.png" Panel.ZIndex="-1" VerticalAlignment="Top" MaxWidth="150" MaxHeight="150">
+                <Image.OpacityMask>
+                    <ImageBrush ImageSource="/images/buttons/scroller.png" Stretch="Uniform"/>
+                </Image.OpacityMask>
+            </Image>
+        </Grid>
+        <Grid Grid.Column="2">
+            <Image Grid.Column="2" Panel.ZIndex="1" Source="/images/logo.png" Grid.RowSpan="2" Stretch="Fill" Margin="0,-70,0,-65"/>
+        </Grid>
+
     </Grid>
 </Window>
